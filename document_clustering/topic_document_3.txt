@@ -1,0 +1,71 @@
+Migrating a MySQL database usually requires only a few simple steps, but can take quite some time, depending on the amount of data you would like to migrate.
+
+The following steps will guide you through how to export a MySQL database from the old server, secure it, copy it to the new server, import it successfully, and make sure the data is there.
+
+Exporting MySQL Database to a Dump File
+Oracle provides a utility named mysqldump that allows you to easily export the database structure and data to an SQL dump file. Use the following command:
+
+mysqldump -u root -p --opt [database name] > [database name].sql
+A few notes:
+
+We're using the --single-transaction flag to avoid a database lock while exporting the data. It will allow you to continue updating data in your old database while exporting the dump file. Please note, though, that new data that will be updated after the exporting process already started — it won't be available in the exported dump file.
+Make sure to replace [database name] with your actual database name before running the command.
+Make sure to enter your user credentials instead of user and Password in the command. Make sure the user has permissions to back up the database.
+Secure the Backup File
+In most cases, an organization's data is its most critical asset. Therefore, we do not want database backups laying around in our servers unprotected, as they can mistakenly leak or, even worse, get stolen by hackers.
+
+Therefore, at the first chance you get, compress and encrypt the file and delete the original file. To encrypt the file to a compressed file in Linux operating systems, use this command:
+
+zip --encrypt dump.zip db.sql
+You will be prompted to enter a password before the compression starts.
+
+Transfer the Backup File
+Now that we have an encrypted dump file, let's transfer it over the network to the new server, using SCP:
+
+scp /path/to/source-file user@host:/path/to/destination-folder/
+Import MySQL Dump to New Server
+Now that we have the backup file on the new server, let's decrypt and extract it:
+
+unzip -P your-password dump.zip
+Once the file is imported, remember to delete the dump file both for storage and security reasons.
+To import the file, use the following command:
+
+mysql -u root -p newdatabase < /path/to/newdatabase.sql
+Validate Imported Data in New Server
+Now that we have the database imported on the new server, we need a way to make sure that the data is actually there and that we didn't lose anything.
+
+We recommend to start with running this query on both the old and new databases and compare the results.
+
+The query will count the rows on all tables, which will provide an indication of the amount of data in both databases.
+
+SELECT 
+    TABLE_NAME, 
+    TABLE_ROWS 
+FROM 
+    `information_schema`.`tables` 
+WHERE 
+    `table_schema` = 'YOUR_DB_NAME';
+In addition, we recommend to check for MIN and MAX records of numeric columns in the tables to make sure the data itself is valid and not only the amount of data (this is only an indication though). Another option for a test is to export the database from the new server and compare the SQL dump with the old server's SQL dump.
+
+Also, before migrating the application itself, we recommend to redirect one application instance to the new database and confirm that everything is working properly.
+
+Another Export and Import Option
+We kept this option at the end, as we do not really recommend working with it.
+
+It seems to be a lot easier, as it will export and transfer the dump file and import the data to the new database, all in one command.
+
+The downside, though, is that if the network link dies, you need to start over.
+
+Therefore, we believe it's less recommended to work with this command — especially with a large database.
+
+If you would like to try it anyway, use this command:
+
+mysqldump -u root -pPassword --all-databases | ssh user@new_host.host.com 'cat - | mysql -u root -pPassword'
+Important Notes
+Make sure have both MySQL servers installed with the same official distribution and version. Otherwise, you'll need to follow the upgrade instructions from MySQL's website.
+Make sure you have enough space in your old server to hold the dump file and the compressed file (2 x db_size should be available).
+Make sure you have enough space in your new server to hold the encrypted dump file, the decrypted dump file, and the imported database (3 x db_size should be available).
+If you ever considered just moving the datadir from one database to another, please don't. You do not want to mess with the internal structure of the database, as it's very likely to be an invitation for trouble in the future.
+Do not forget to configure important flags such as innodb_log_file_size in your new server's configurations. Forgetting to update the configuration according to the new server's specifications might result in serious performance issues.
+In many cases, the incentive to upgrade to a new database server is to improve query performance. If the upgrade didn't come with the expected improvement, you probably should look into optimizing your SQL queries and not only upgrading your hardware.
+Enjoy your new server!
