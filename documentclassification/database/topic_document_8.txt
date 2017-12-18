@@ -1,0 +1,123 @@
+Lots of people talk about the exponential growth of data and how soon, we're going to have more data than we know what to do with. However, not as many people are talking about the database aspect of this — but they should be! As data grows, databases need to be able to keep up. That's why it's becoming increasingly important to not only understand how to analyze the growing amounts of data but also how to have databases that can handle it. That's why the DZone Editorial Team has aggregated a list of 51 database terms that you need to know if you're going to keep afloat with this overflow of data.
+
+A
+ACID (Atomicity, Consistency, Isolation, Durability): A term that refers to the model properties of database transactions, traditionally used for SQL databases.
+
+Aggregate: A cluster of domain objects that can be treated as a single unit. An ideal unit for data storage on large distributed systems.
+
+Apache Cassandra: An open-source distributed database system that can store and manage big data across servers and can be a read-intensive database for large BI (business intelligence) systems.
+
+Apache Lucene: An open-source text retrieval library that is commonly used for full-text search, implementing search engines, and implementing recommendation systems.
+
+Apache Spark: An open-source parallel processing framework that handles large-scale data analytics applications, real-time analytics, and data processing workloads.
+
+B
+BASE (Basic Availability, Soft State, Eventual Consistency): A term that refers to the model properties of database transactions, specifically for NoSQL databases needing to manage unstructured data.
+
+B-Tree: A data structure in which all terminal nodes are the same distance from the base, and all non-terminal nodes are between n and 2n subtrees or pointers. It is optimized for systems that read and write large blocks of data or perform mostly reads.
+
+C
+Cloud-native database: A database that is built on and runs on the cloud computing delivery model.
+
+Complex event processing: An organizational process for collecting data from multiple streams for the purpose of analysis and planning.
+
+Consistency: One of the four primary attributes of a database transaction, meaning that if a transaction fails, the data is returned to its original state, or if it doesn't fail, a new state of data is created.
+
+D
+Database clustering: Connecting two or more servers and instances to a database, often for the advantages of fault tolerance, load balancing, and parallel processing.
+
+Data lineage: Information about where data came from, how it changes, and where it moves; can be used to address validation and debugging issues in databases.
+
+Data management: The complete lifecycle of how an organization handles storing, processing, and analyzing datasets.
+
+Data mining: The process of discovering patterns in large sets of data and transforming that information into an understandable format.
+
+Database management system (DBMS): A suite of software and tools that manage data between the end user and the database.
+
+Data warehouse: A collection of individual computers that work together and appear to function as a single system. This requires access to a central database, multiple copies of a database on each computer, or database partitions on each machine.
+
+Distributed relational database: A database that contains objects such as tables that are part of different yet interconnected systems.
+
+Distributed system: A collection of individual computers that work together and appear to work as a single system. This requires access to a central database, multiple copies of a database on each computer, or database partitions on each machine.
+
+Document store: A type of database that aggregates data from documents rather than defined tables and is used to present document data in a searchable form.
+
+Dynamo DB: A NoSQL database service from AWS with low latency that can easily store and retrieve big data and and serve large amounts of traffic.
+
+E
+ElasticSearch: A Java-based search engine built under Apache Lucene that searches and indexes files at near real-time and automatically indexes JSON documents.
+
+Eventual consistency: The idea that databases conforming to the BASE model will contain data that become consistent over time.
+
+F
+Fault tolerance: A system’s ability to respond to hardware or software failure without disrupting other systems.
+
+G
+Graph store: A type of database used for handling entities that have a large number of relationships, such as social graphs, tag systems, or any link-rich domain; it is also often used for routing and location services.
+
+H
+Hadoop: An Apache Software Foundation framework developed specifically for high scalability,data-intensive, distributed computing. It is used primarily for batch processing large datasets very efficiently.
+
+High availability (HA): Refers to the continuous availability of resources in a computer system even after component failures occur. This can be achieved with redundant hardware, software solutions, and other specific strategies.
+
+Hybrid transaction/analytical processing: An application architecture that is said to "break the wall" between transaction processing and analytics and that enables real-time decision-making.
+
+I
+In-memory: As a generalized industry term, it describes data management tools that load data into RAM or flash memory instead of hard-disk or solid-state drives.
+
+J
+Join: A clause in SQL that combines columns from one or more tables in a relational database using values common to each.
+
+Journaling: Refers to the simultaneous, real-time logging of all data updates in a database. The resulting log functions as an audit trail that can be used to rebuild the database if the original data is corrupted or deleted.
+
+JPA (Java Persistence API): A Java specification for accessing, managing, and persisting data between Java objects/classes and relational databases.
+
+K
+Key-value store: A type of database that stores data in simple key-value pairs. They are used for handling lots of small, continuous, and potentially volatile reads and writes.
+
+L
+Lightning memory-mapped database (LMDB): A copy-on-write B-Tree database that is fully transactional, ACID compliant, small in size, and uses MVCC.
+
+Log-structured merge (LSM) tree: A data structure that writes and edits data using immutable segments or runs that are usually organized into levels. There are several strategies, but the first level commonly contains the most recent and active data.
+
+M
+MapReduce: A programming model created by Google for high scalability and distribution on multiple clusters for the purpose of data processing.
+
+Multi-version concurrency control (MVCC): A method for handling situations where machines simultaneously read and write to a database.
+
+N
+Non-first normal form query language (N1QL): Developed by Couchbase, it offers a common query language and JSON-based data model for distributed document-oriented databases.
+
+NewSQL: A shorthand descriptor for relational database systems that provide horizontal scalability and performance on par with NoSQL systems.
+
+NoSQL: A class of database systems that incorporates other means of querying outside of traditional SQL and does not use standard relational structures.
+
+O
+Object-relational mapper (ORM): A tool that provides a database abstraction layer to convert data between incompatible type systems using object-oriented programming languages instead of the database’s query language.
+
+P
+Parallelism: A state where operating systems are able to effectively work together to solve a problem.
+
+Persistence: Refers to information from a program that outlives the process that created it, meaning it won’t be erased during a shutdown or clearing of RAM. Databases provide persistence.
+
+Polyglot persistence: Refers to an organization’s use of several different data storage technologies for different types of data.
+
+R
+Relational database: A database that structures interrelated datasets in tables, records, and columns.
+
+Replication: A term for the sharing of data so as to ensure consistency between redundant resources.
+
+S
+Scalability: The ability of a database or other system to be able to take on more resources and capacity and to connect multiple entities to improve efficiency,
+
+Schema: A term for the unique data structure of an individual database.
+
+Sharding: Also known as “horizontal partitioning,” sharding is where a database is split into several pieces, usually to improve the speed and reliability of an application.
+
+Strong consistency: A database concept that refers to the inability to commit transactions that violate a database’s rules for data validity.
+
+Structured query language (SQL): A programming language designed for managing and manipulating data; used primarily in relational databases.
+
+W
+Wide-column store: Also called “BigTable stores” because of their relation to Google’s early BigTable database, these databases store data in records that can hold very large numbers of dynamic columns. The column names and the recordkeys are not fixed.
+

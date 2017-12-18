@@ -1,0 +1,309 @@
+This post is a hands-on look at ZFS with MySQL.
+
+In my previous post, I highlighted the similarities between MySQL and ZFS. Before going any further, I'd like you to be able to play and experiment with ZFS. This post shows you how to configure ZFS with MySQL in a minimalistic way on either Ubuntu 16.04 or Centos 7.
+
+Installation
+In order to be able to use ZFS, you need some available storage space. For storage — since the goal here is just to have a hands-on experience — we'll use a simple file as a storage device. Although simplistic, I have now been using a similar setup on my laptop for nearly three years (just can't get rid of it; it is too useful). For simplicity, I suggest you use a small Centos7 or Ubuntu 16.04 VM with one core, 8GB of disk and 1GB of RAM.
+
+First, you need to install ZFS as it is not installed by default. On Ubuntu 16.04, you simply need to run:
+
+root@Ubuntu1604:~# apt-get install zfs-dkms zfsutils-linux
+On RedHat or Centos 7.4, the procedure is a bit more complex. First, we need to install the EPEL ZFS repository:
+
+[root@Centos7 ~]# yum install http://download.zfsonlinux.org/epel/zfs-release.el7_4.noarch.rpm
+[root@Centos7 ~]# gpg --quiet --with-fingerprint /etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+[root@Centos7 ~]# gpg --quiet --with-fingerprint /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+Apparently, there were issues with ZFS kmod kernel modules on RedHat/Centos. I never had any issues with Ubuntu (and who knows how often the kernel is updated?). Anyway, it is recommended that you enable kABI-tracking kmods. Edit the file /etc/yum.repos.d/zfs.repo, disable the ZFS repo, and enable the zfs-kmod repo. The beginning of the file should look like:
+
+[zfs]
+name=ZFS on Linux for EL7 - dkms
+baseurl=http://download.zfsonlinux.org/epel/7.4/$basearch/
+enabled=0
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+[zfs-kmod]
+name=ZFS on Linux for EL7 - kmod
+baseurl=http://download.zfsonlinux.org/epel/7.4/kmod/$basearch/
+enabled=1
+metadata_expire=7d
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux
+...
+Now, we can proceed and install ZFS:
+
+[root@Centos7 ~]# yum install zfs
+After the installation, I have ZFS version 0.6.5.6 on Ubuntu and version 0.7.3.0 on Centos7. The version difference doesn't matter for what will follow.
+
+Setup
+So, we need a container for the data. You can use any of the following options for storage:
+
+A free disk device
+A free partition
+An empty LVM logical volume
+A file
+The easiest solution is to use a file, and so that's what I'll use here. A file is not the fastest and most efficient storage, but it is fine for our hands-on. In production, please use real devices. A more realistic server configuration will be discussed in a future post. The following steps are identical on Ubuntu and Centos. The first step is to create the storage file. I'll use a file of 1~GB in /mnt. Adjust the size and path to whatever suits the resources you have:
+
+[root@Centos7 ~]# dd if=/dev/zero of=/mnt/zfs.img bs=1024 count=1048576
+The result is a 1GB file in /mnt:
+
+[root@Centos7 ~]# ls -lh /mnt
+total 1,0G
+-rw-r--r--.  1 root root 1,0G 16 nov 16:50 zfs.img
+Now, we will create our ZFS pool, mysqldata, using the file we just created:
+
+[root@Centos7 ~]# modprobe zfs
+[root@Centos7 ~]# zpool create mysqldata /mnt/zfs.img
+[root@Centos7 ~]# zpool status
+  pool: mysqldata
+ state: ONLINE
+  scan: none requested
+config:
+        NAME            STATE     READ WRITE CKSUM
+        mysqldata       ONLINE       0     0     0
+          /mnt/zfs.img  ONLINE       0     0     0
+errors: No known data errors
+[root@Centos7 ~]# zfs list
+NAME        USED  AVAIL  REFER  MOUNTPOINT
+mysqldata  79,5K   880M    24K  /mysqldata
+If you have a result similar to the above, congratulations, you have a ZFS pool. If you put files in /mysqldata, they are in ZFS.
+
+MySQL Installation
+Now, let's install MySQL and play around a bit. We'll begin by installing the Percona repository:
+
+root@Ubuntu1604:~# cd /tmp
+root@Ubuntu1604:/tmp# wget https://repo.percona.com/apt/percona-release_0.1-4.$(lsb_release -sc)_all.deb
+root@Ubuntu1604:/tmp# dpkg -i percona-release_*.deb
+root@Ubuntu1604:/tmp# apt-get update
+[root@Centos7 ~]# yum install http://www.percona.com/downloads/percona-release/redhat/0.1-4/percona-release-0.1-4.noarch.rpm
+Next, we install Percona Server for MySQL 5.7:
+
+root@Ubuntu1604:~# apt-get install percona-server-server-5.7
+root@Ubuntu1604:~# systemctl start mysql
+[root@Centos7 ~]# yum install Percona-Server-server-57
+[root@Centos7 ~]# systemctl start mysql
+The installation command pulls all the dependencies and sets up the MySQL root password. On Ubuntu, the install script asks for the password, but on Centos7 a random password is set. To retrieve the random password:
+
+[root@Centos7 ~]# grep password /var/log/mysqld.log
+2017-11-21T18:37:52.435067Z 1 [Note] A temporary password is generated for root@localhost: XayhVloV+9g+
+The following step is to reset the root password:
+
+[root@Centos7 ~]# mysql -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'Mysql57OnZfs_';"
+Enter password:
+Since 5.7.15, the password validation plugin by defaults requires a length greater than 8, mixed cases, at least one digit and at least one special character. On either Linux distributions, I suggest you set the credentials in the /root/.my.cnf file like this:
+
+[# cat /root/.my.cnf
+[client]
+user=root
+password=Mysql57OnZfs_
+MySQL Configuration for ZFS
+Now that we have both ZFS and MySQL, we need some configuration to make them play together. From here, the steps are the same on Ubuntu and Centos. First, we stop MySQL:
+
+# systemctl stop mysql
+Then, we'll configure ZFS. We will create three ZFS filesystems in our pool:
+
+mysql will be the top-level filesystem for the MySQL-related data. This filesystem will not directly have data in it, but data will be stored in the other filesystems that we create. The utility of the mysql filesystem will become obvious when we talk about snapshots. Something to keep in mind for the next steps, the properties of a filesystem are by default inherited from the upper level.
+mysql/data will be the actual datadir. The files in the datadir are mostly accessed through random IO operations, so we'll set the ZFS record size to match the InnoDB page size.
+mysql/log will be where the log files will be stored. By log files, I primarily mean the InnoDB log files. But the binary log file, the slow query log, and the error log will all be stored in that directory. The log files are accessed through sequential IO operations. We'll thus use a bigger ZFS record size in order to maximize the compression efficiency.
+Let's begin with the top-level MySQL container. I could have used directly mysqldata, but that would somewhat limit us. The following steps create the filesystem and set some properties:
+
+# zfs create mysqldata/mysql
+# zfs set compression=gzip mysqldata/mysql
+# zfs set recordsize=128k mysqldata/mysql
+# zfs set atime=off mysqldata/mysql
+I just set compression to gzip (the equivalent of GZIP level 6),  recordsize to 128KB, and  atime (the file's access time) to off. Once we are done with the mysql filesystem, we can proceed with the data and log filesystems:
+
+# zfs create mysqldata/mysql/log
+# zfs create mysqldata/mysql/data
+# zfs set recordsize=16k mysqldata/mysql/data
+# zfs set primarycache=metadata mysqldata/mysql/data
+# zfs get compression,recordsize,atime mysqldata/mysql/data
+NAME                  PROPERTY     VALUE     SOURCE
+mysqldata/mysql/data  compression  gzip      inherited from mysqldata/mysql
+mysqldata/mysql/data  recordsize   16K       local
+mysqldata/mysql/data  atime        off       inherited from mysqldata/mysql
+Of course, there are other properties that could be set, but let's keep things simple. Now that the filesystems are ready, let's move the files to ZFS (make sure you stopped MySQL):
+
+# mv /var/lib/mysql/ib_logfile* /mysqldata/mysql/log/
+# mv /var/lib/mysql/* /mysqldata/mysql/data/
+And then set the real mount points:
+
+# zfs set mountpoint=/var/lib/mysql mysqldata/mysql/data
+# zfs set mountpoint=/var/lib/mysql-log mysqldata/mysql/log
+# chown mysql.mysql /var/lib/mysql /var/lib/mysql-log
+Now we have:
+
+# zfs list
+NAME                   USED  AVAIL  REFER  MOUNTPOINT
+mysqldata             1,66M   878M  25,5K  /mysqldata
+mysqldata/mysql       1,54M   878M    25K  /mysqldata/mysql
+mysqldata/mysql/data   890K   878M   890K  /var/lib/mysql
+mysqldata/mysql/log    662K   878M   662K  /var/lib/mysql-log
+We must adjust the MySQL configuration accordingly. Here's what I put in my /etc/my.cnf file (/etc/mysql/my.cnf on Ubuntu):
+
+[mysqld]
+datadir=/var/lib/mysql
+innodb_log_group_home_dir = /var/lib/mysql-log
+innodb_doublewrite = 0
+innodb_checksum_algorithm = none
+slow_query_log = /var/lib/mysql-log/slow.log
+log-error = /var/lib/mysql-log/error.log
+server_id = 12345
+log_bin = /var/lib/mysql-log/binlog
+relay_log=/var/lib/mysql-log/relay-bin
+expire_logs_days=7
+socket=/var/lib/mysql/mysql.sock
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+pid-file=/var/run/mysqld/mysqld.pid
+On Centos 7, selinux prevented MySQL from accessing files in /var/lib/mysql-log. I had to perform the following steps:
+
+[root@Centos7 ~]# yum install policycoreutils-python
+[root@Centos7 ~]# semanage fcontext -a -t mysqld_db_t "/var/lib/mysql-log(/.*)?"
+[root@Centos7 ~]# chcon -Rv --type=mysqld_db_t /var/lib/mysql-log/
+I could have just disabled selinux since it is a test server, but if I don't get my hands dirty with selinux once in a while and with semanage and chcon, I will not remember how to do it. Selinux is an important security tool in Linux (but that's another story).
+
+At this point, feel free to start using your test MySQL database on ZFS.
+
+Monitoring ZFS
+To monitor ZFS, you can use the zpool command like this:
+
+[root@Centos7 ~]# zpool iostat 3
+              capacity     operations     bandwidth
+pool        alloc   free   read  write   read  write
+----------  -----  -----  -----  -----  -----  -----
+mysqldata   19,6M   988M      0      0      0    290
+mysqldata   19,3M   989M      0     44      0  1,66M
+mysqldata   23,4M   985M      0     49      0  1,33M
+mysqldata   23,4M   985M      0     40      0   694K
+mysqldata   26,7M   981M      0     39      0   561K
+mysqldata   26,7M   981M      0     37      0   776K
+mysqldata   23,8M   984M      0     43      0   634K
+This shows the ZFS activity while I was loading some data. Also, the following command gives you an estimate of the compression ratio:
+
+[root@Centos7 ~]# zfs get compressratio,used,logicalused mysqldata/mysql
+NAME             PROPERTY       VALUE  SOURCE
+mysqldata/mysql  compressratio  4.10x  -
+mysqldata/mysql  used           116M   -
+mysqldata/mysql  logicalused    469M   -
+[root@Centos7 ~]# zfs get compressratio,used,logicalused mysqldata/mysql/data
+NAME                  PROPERTY       VALUE  SOURCE
+mysqldata/mysql/data  compressratio  4.03x  -
+mysqldata/mysql/data  used           67,9M  -
+mysqldata/mysql/data  logicalused    268M   -
+[root@Centos7 ~]# zfs get compressratio,used,logicalused mysqldata/mysql/log
+NAME                 PROPERTY       VALUE  SOURCE
+mysqldata/mysql/log  compressratio  4.21x  -
+mysqldata/mysql/log  used           47,8M  -
+mysqldata/mysql/log  logicalused    201M   -
+In my case, the dataset compresses very well (4x). Another way to see how files are compressed is to use ls and du. ls returns the actual uncompressed size of the file, while du returns the compressed size. Here's an example:
+
+[root@Centos7 mysql]# -lah ibdata1
+-rw-rw---- 1 mysql mysql 90M nov 24 16:09 ibdata1
+[root@Centos7 mysql]# du -hs ibdata1
+14M     ibdata1
+I really invite you to further experiment and get a feeling of how ZFS and MySQL behave together.
+
+Snapshots and Backups
+A great feature of ZFS that work really well with MySQL is snapshots. A snapshot is a consistent view of the filesystem at a given point in time. Normally, it is best to perform a snapshot while a flush tables with read lock is held. That allows you to record the master position, and also to flush MyISAM tables. It is quite easy to do that. Here's how I create a snapshot with MySQL:
+
+[root@Centos7 ~]# mysql -e 'flush tables with read lock;show master status;\! zfs snapshot -r mysqldata/mysql@my_first_snapshot'
++---------------+-----------+--------------+------------------+-------------------+
+| File          | Position  | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++---------------+-----------+--------------+------------------+-------------------+
+| binlog.000002 | 110295083 |              |                  |                   |
++---------------+-----------+--------------+------------------+-------------------+
+[root@Centos7 ~]# zfs list -t snapshot
+NAME                                     USED  AVAIL  REFER  MOUNTPOINT
+mysqldata/mysql@my_first_snapshot          0B      -    24K  -
+mysqldata/mysql/data@my_first_snapshot     0B      -  67,9M  -
+mysqldata/mysql/log@my_first_snapshot      0B      -  47,8M  -
+The command took about one second. The only time where such commands would take more time is when there are MyISAM tables with a lot of pending updates to the indices, or when there are long running transactions. You probably wonder why the USED column reports 0B. That's simply because there were no changes to the filesystem since the snapshot was created. It is a measure of the amount of data that hasn't been free because the snapshot requires the data. Said otherwise, it how far the snapshot has diverged from its parent. You can access the snapshot through a clone or through ZFS as a file system. To access the snapshot through ZFS, you have to set the snapdir parameter to "visible, " and then you can see the files. Here's how:
+
+[root@Centos7 ~]# zfs set snapdir=visible mysqldata/mysql/data
+[root@Centos7 ~]# zfs set snapdir=visible mysqldata/mysql/log
+[root@Centos7 ~]# ls /var/lib/mysql-log/.zfs/snapshot/my_first_snapshot/
+binlog.000001  binlog.000002  binlog.index  error.log  ib_logfile0  ib_logfile1
+The files in the snapshot directory are read-only. If you want to be able to write to the files, you first need to clone the snapshots:
+
+[root@Centos7 ~]# zfs create mysqldata/mysqlslave
+[root@Centos7 ~]# zfs clone mysqldata/mysql/data@my_first_snapshot mysqldata/mysqlslave/data
+[root@Centos7 ~]# zfs clone mysqldata/mysql/log@my_first_snapshot mysqldata/mysqlslave/log
+[root@Centos7 ~]# zfs list
+NAME                        USED  AVAIL  REFER  MOUNTPOINT
+mysqldata                   116M   764M    26K  /mysqldata
+mysqldata/mysql             116M   764M    24K  /mysqldata/mysql
+mysqldata/mysql/data       67,9M   764M  67,9M  /var/lib/mysql
+mysqldata/mysql/log        47,8M   764M  47,8M  /var/lib/mysql-log
+mysqldata/mysqlslave         28K   764M    26K  /mysqldata/mysqlslave
+mysqldata/mysqlslave/data     1K   764M  67,9M  /mysqldata/mysqlslave/data
+mysqldata/mysqlslave/log      1K   764M  47,8M  /mysqldata/mysqlslave/log
+At this point, it is up to you to use the clones to spin up a local slave. Like for the snapshots, the clone only grows in size when actual data is written to it. ZFS records that haven't changed since the snapshot was taken are shared. That's huge space savings. For a customer, I once wrote a script to automatically create five MySQL slaves for their developers. The developers would do tests, and often replication broke. Rerunning the script would recreate fresh slaves in a matter of a few minutes. My ZFS snapshot script and the script I wrote to create the clone based slaves are available here.
+
+Optional Features
+In the previous post, I talked about a SLOG device for the ZIL and the L2ARC, a disk extension of the ARC cache. If you promise to never use the following trick in production, here's how to speed MySQL on ZFS drastically:
+
+[root@Centos7 ~]# dd if=/dev/zero of=/dev/shm/zil_slog.img bs=1024 count=131072
+131072+0 enregistrements lus
+131072+0 enregistrements écrits
+134217728 octets (134 MB) copiés, 0,373809 s, 359 MB/s
+[root@Centos7 ~]# zpool add mysqldata log /dev/shm/zil_slog.img
+[root@Centos7 ~]# zpool status
+  pool: mysqldata
+ state: ONLINE
+  scan: none requested
+config:
+        NAME                     STATE     READ WRITE CKSUM
+        mysqldata                ONLINE       0     0     0
+          /mnt/zfs.img           ONLINE       0     0     0
+        logs
+          /dev/shm/zil_slog.img  ONLINE       0     0     0
+errors: No known data errors
+The data in the SLOG is critical for ZFS recovery. I performed some tests with virtual machines, and if you crash the server and lose the SLOG, you may lose all the data stored in the ZFS pool. Normally, the SLOG is on a mirror in order to lower the risk of losing it. The SLOG can be added and removed online.
+
+I know I asked you to promise to never use an SHM file as SLOG in production. Actually, there are exceptions. I would not hesitate to temporarily use such a trick to speed up a lagging slave. Another situation where such a trick could be used is with Percona XtraDB Cluster. With a cluster, there are multiple copies of the dataset. Even if one node crashed and lost its ZFS filesystems, it could easily be reconfigured and reprovisioned from the surviving nodes.
+
+The other optional feature I want to cover is a cache device. The cache device is what is used for the L2ARC. The content of the L2ARC is compressed as the original data is compressed. To add a cache device (again, an SHM file), do:
+
+[root@Centos7 ~]# dd if=/dev/zero of=/dev/shm/l2arc.img bs=1024 count=131072
+131072+0 enregistrements lus
+131072+0 enregistrements écrits
+134217728 octets (134 MB) copiés, 0,272323 s, 493 MB/s
+[root@Centos7 ~]# zpool add mysqldata cache /dev/shm/l2arc.img
+[root@Centos7 ~]# zpool status
+  pool: mysqldata
+ state: ONLINE
+  scan: none requested
+config:
+    NAME                     STATE     READ WRITE CKSUM
+    mysqldata                ONLINE       0     0     0
+      /mnt/zfs.img           ONLINE       0     0     0
+    logs
+      /dev/shm/zil_slog.img  ONLINE       0     0     0
+    cache
+      /dev/shm/l2arc.img     ONLINE       0     0     0
+errors: No known data errors
+To monitor the L2ARC (and also the ARC), look at the file: /proc/spl/kstat/zfs/arcstats. As the ZFS filesystems are configured right now, very little will go to the L2ARC. This can be frustrating. The reason is that the L2ARC is filled by the elements evicted from the ARC. If you recall, we have set primarycache=metatdata for the filesystem containing the actual data. Hence, in order to get some data to our L2ARC, I suggest the following steps:
+
+[root@Centos7 ~]# zfs set primarycache=all mysqldata/mysql/data
+[root@Centos7 ~]# echo 67108864 > /sys/module/zfs/parameters/zfs_arc_max
+[root@Centos7 ~]# echo 3 > /proc/sys/vm/drop_caches
+[root@Centos7 ~]# grep '^size' /proc/spl/kstat/zfs/arcstats
+size                            4    65097584
+It takes the echo command to drop_caches to force a re-initialization of the ARC. Now, InnoDB data starts to be cached in the L2ARC. The way data is sent to the L2ARC has many tunables, which I won't discuss here. I chose 64MB for the ARC size mainly because I am using a low-memory VM. A size of 64MB is aggressively small and will slow down ZFS if the metadata doesn't fit in the ARC. Normally, you should use a larger value. The actual good size depends on many parameters like the filesystem system size, the number of files and the presence of an L2ARC. You can monitor the ARC and L2ARC using the arcstat tool that comes with ZFS on Linux (when you use Centos 7). With Ubuntu, download the tool from here.
+
+Removal
+So the ZFS party is over? We need to clean up the mess! Let's begin:
+
+[root@Centos7 ~]# systemctl stop mysql
+[root@Centos7 ~]# zpool remove /dev/shm/l2arc.img
+[root@Centos7 ~]# zpool remove mysqldata /dev/shm/zil_slog.img
+[root@Centos7 ~]# rm -f /dev/shm/*.img
+[root@Centos7 ~]# zpool destroy mysqldata
+[root@Centos7 ~]# rm -f /mnt/zfs.img
+[root@Centos7 ~]# yum erase spl kmod-spl libzpool2 libzfs2 kmod-zfs zfs
+The last step is different on Ubuntu:
+
+root@Ubuntu1604:~# apt-get remove spl-dkms zfs-dkms libzpool2linux libzfs2linux spl zfsutils-linux zfs-zed
+Conclusion
+With this guide, I hope I provided a positive first experience in using ZFS with MySQL. The configuration is simple, and not optimized for performance. However, we'll look at more realistic configurations in future posts.

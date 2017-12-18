@@ -1,0 +1,52 @@
+Ever since the 2000 movie The Perfect Storm told the tale of perseverance in the face of a once-in-a-lifetime coalescence of massive forces, its title has become a metaphor for the challenge of dealing with a timely combination of forces — each one disruptive in its own right.
+
+Such is the state of affairs in the world of business analytics today. In fact, there are no fewer than four such disruptions impacting the world of analytics, driving both confusion as well as unprecedented value for businesses who use the tools that are weathering this epic tempest.
+
+The Four Forces of Disruption
+The first disruptive force impacting business analytics, of course, is big data. Not simply the size of the datasets themselves, but the exponentially exploding ability to deal with increasingly large quantities of information that is, in turn, driving the size of the data sets themselves.
+
+Until only a few years ago, the only way we had to get our heads around the information we wanted to analyze was by paring it down — summarizing it, organizing it, boiling it down so that the limited technology of the day could give us results we could use.
+
+No more. Today, we want to eat the whole enchilada — unsummarized, unboiled, in its natural state. After all, we never know what essential business insights we might find in information that we may have otherwise disregarded or thrown away altogether.
+
+Disruptive force #2: real-time. Not only did we have to pare down our datasets, but we also had to wait — often for days at a time, until the technology finally coughed up bits of insight, not only too little but frequently too late as well.
+
+Today that information is at our fingertips, even for streaming data that is itself in a constant state of flux. This real-time context for analytics also gives us the ability to iterate on our queries – basing one ad hoc query on the results of the previous one, then rinse and repeat until we get the insights we need.
+
+Number three on our list of disruptive trends is the low-code/no-code movement.
+
+In the past, data analysts and other business people had to request software development resources from harried and overworked engineers.
+
+Today, in contrast, enterprises expect both greater sophistication and ease-of-use from the analytics tools they use — so they can perform analyses themselves, when and where they want.
+
+True, there is always a role for a professional developer, but the tasks that require such expertise should be more of the exception than the rule. After all, business analysis is a business task, and the tools must rise to the challenge.
+
+Finally, disruptive trend #4: artificial intelligence (AI), in particular, machine learning (ML). There is no shorter path between massive Big Data sets and the distillation of true insight than software we can train to deliver such insights automatically.
+
+In fact, big data analytics is a perfect use case for ML, as the technology is now able to process diverse data sets, including unstructured, natural language text as well as other types of information. And the better able we are to define the results we are looking for, the easier it becomes to train our ML software.
+
+There are many business analytics platforms on the market today that handle one or two of the four disruptions above, but the number of tools that handle the perfect storm of all four is quite a bit rarer.
+
+One notable player: Accelerite ShareInsights. Accelerite is positioning ShareInsights as an end-to-end self-service big data analytics platform with this month’s release of version 2.0.
+
+ShareInsights’ "end-to-end" story, in fact, combines real-time and big data, as the platform runs on top of Hadoop while leveraging Spark instances, delivering real-time insights without requiring any changes to the underlying Hadoop infrastructure.
+
+In addition, ShareInsights’ declarative, YAML-based approach to representing analytics queries provides an abstraction layer between Hadoop and the data analysts, removing the need to duplicate or change the underlying datasets.
+
+The result: greater speed of analysis, as well as the ability to iterate, thus empowering analysts to adjust and rerun their queries in a real-time environment. A sample ShareInsights screenshot appears below.
+
+ShareInsights Analytics Dashboard (Source: Accelerite)
+
+ShareInsights also offers low-code capabilities when necessary, enabling business-centric analysts to work independently of developers. Such developers can embed specialized logic into the platform, thus providing no-code level ease of use with the benefits of low-code customizability.
+
+Finally, ShareInsights enables its users to capitalize on ML via a library of self-learning algorithms and drag-and-drop controls. Accelerite has also integrated several ML algorithms into ShareInsights, enabling straightforward analysis of unstructured data.
+
+Many vendors seek to offer competitive solutions via a ‘shopping list’ approach, rolling out products that offer several separate, poorly integrated capabilities. In fact, the big data analytics market is littered with vendors whose ‘shopping lists’ include the four disruptive trends in this article.
+
+It’s important, therefore, to look for a platform that not only has integrated capabilities. But ideally, one that the vendor has built from the ground up to offer such end-to-end functionality.
+
+In the case of Accelerite ShareInsights, the "end-to-end" designation goes far deeper than marketing. The underlying architecture of the platform supports real-time analysis of big data sets — a feat few of its competitors can match.
+
+ShareInsights’ underlying architecture, however, isn’t what shows. The real differentiator for a platform like this one is how easily analysts can use it to gather valuable insights in real-world situations.
+
+Copyright © Intellyx LLC. Accelerite is an Intellyx client. At the time of writing, none of the other organizations mentioned in this article are Intellyx clients. Intellyx retains full editorial control over the content of this paper.

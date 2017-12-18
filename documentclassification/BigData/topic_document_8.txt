@@ -1,0 +1,30 @@
+IoT is dramatically is making our lives easier than ever. The convenience of connected devices is not confined to your home appliances or even your electronic gadgets. There are other sectors that are being subjected to the revolution, owing to the big data pool.
+
+Transportation is one such industry that has been subjected to a huge change, owing to data. However, the transportation industry, like any other, is collecting a vast amount of data. The obvious question here would be regarding the complexity that’s going to follow in maintaining such huge data in the future.
+
+Thanks to the tools that are available now, analytical systems can handle big data well and can increase the effectiveness of connected networks, thus guaranteeing maximum passenger satisfaction.
+
+Let’s see how!
+
+1. Optimized Infrastructure
+With the help of varied data, a clear picture about the usage of different transportation means can be understood. The perk of this huge amount of data is that it can be used to understand people's transportation interests and then can be used to develop the most demanded route or means of transportation in accordance with demands. In short, effectiveness in resource management can be guaranteed.
+
+We are at a point in time where the public should be persuaded to use public transportation, as our cities are getting more crowded every day. The data obtained will give an idea of why people dislike certain transportation methods. An AI-incorporated analytical system has the ability to predict certain aspects of the transportation spectrum, especially regarding dislikes, and can come up with excellent suggestions for quick improvements.
+
+Often, Metro stations allow one-side or two-side transport for passengers. However, this allocation might not be in favor of passenger needs. Analytics can come up other options, such as three-way tickets, that will be beneficial for both the industry as well as the passenger.
+
+2. Predictive Analytics
+Data obtained from various transportation systems can be used to predict flawless results. For instance, imagine that certain buses are having a dry run through certain routes. A well-equipped analytical system can notify users regarding this literal roadblock.
+
+There are sensors available in the market that can be installed inside vehicles to monitor the working condition of various mechanical parts and create a log of various readings. The data thus obtained can be compared with irregularities to notify the user regarding anomalies.
+
+There are also specific tools that have the ability to integrate with the internet so that weather, bad road conditions, traffic obstructions, etc. can be predicted and commuters can be warned.
+
+3. Better Customer Experience
+With the help of data collected, each and every customer can be treated individually with tailor-made personalized business prospectuses.
+
+For instance, if there is a change in the route of a train or even a delay, this information can be intimated to those who are supposed to travel on the train.
+
+Likewise, details like weather condition, events, etc. can be notified to passengers, as these factors have a direct effect on transportation.
+
+For instance, Uber’s success mainly depends on how they use the vast amount of data they've acquired during the course of time. Apart from transportation, they were also collecting valuable data from passengers to give personalized experiences, such as suggesting palaces to visit and giving them offers that they can’t resist.

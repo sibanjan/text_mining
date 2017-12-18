@@ -1,0 +1,33 @@
+Rumor has it that Google is making a big change. It is changing from Software-as-a-Service (SaaS) to a big data platform called BigQuery. According to a blog post by Google, the new service will automatically initiate the transfer of data from certain BigQuery apps in a set and scheduled manner. The service will support data transfers from AdWords, from the DoubleClick Campaign Manager, and from publishers such as YouTubers. It will also include Channel Owner Reports.
+
+According to Google, users can begin asking for data as soon as it is uploaded to BigQuery. These queries are processed with the help of Google Cloud Dataprep. Using this, users can clean up and prepare data for analysis. They can also think about the analysis of other data that is kept apart from BigQuery.
+
+What Is BigQuery?
+BigQuery is Google's serverless, highly scalable, and low-cost data warehouse. It is designed to help data analysts be more efficient and highly productive. There is no particular infrastructure that needs to be managed, so data analysts can actually focus on analyzing data and finding meaningful insights using SQL. It also eliminates the need for a database administrator.
+
+Now that we know what BigQuery is, let's now learn about the key features that are available with the BigQuery Data Transfer Service. These features include:
+
+Data delivery SLA: This means that users can expect services to send data directly to their BigQuery project. This can happen within 24 hours of the request being sent from the user's end.
+
+Customer-managed scheduling: With this feature, the users can set up times for the delivery of custom data from provided schedules. Users can access the data they urgently required whenever and wherever.
+
+Regionalization: Google has made this clear that BigQuery is available across all regions and that there is no barrier for regional access of data. This makes it much easier for users to use the data regardless of what region the data is present or what region they themselves are coming from.
+
+Apart from this, there are many other things that BigQuery can provide. These include the following.
+
+1. Use Improved Cloud Learning Facilities
+Where machine learning is concerned, Google is the leader. This is the leadership that has provided key analyses of big data, like videos or big chunks of information. To prove this, Google has showcased their Cloud Video Intelligence API (private beta). This program searches and identifies videos and content with videos. The categories under this are:
+
+Cloud Vision API (GA): This API offers features for customers ranging from companies to individuals. It can identify numerous entities from the knowledge graph of Google and offers better and improved capabilities for OCR.
+
+Cloud Machine Learning Engine (GA): Until recently, nothing was confirmed — but it is indeed a feature. This is a solution that will turn out to be great for several organizations and will be very helpful to those who want to create models of their own.
+
+Machine Learning Advanced Solution Lab (ASL): Lastly, but most interestingly, this solution will allow companies to work directly with Google staff in order to learn the machine learning that is required for solving high impact solutions.
+
+2. Get Up-and-Running (and Fast)
+With BigQuery, you can set up your warehouses and start your projects almost within minutes. Google claims that BigQuery will run with blazing-fast SQL queries, usually set on gigabytes but going all the way up to petabytes of data. This makes it much easier to include the public with commercial datasets.
+
+3. Accelerate Insights With Powerful Analysis
+You can get insights in a faster way without the need to copy it, or even move it. Google BigQuery promises customers a complete view of all data with the help of seamless and queried data that is stored in BigQuery. It has a columnar storage in addition to Google Cloud Storage. It can also access Google Sheets, Google Cloud Bigtable, and Google Drive. BigQuery does this easily because it integrates with all the present ETL tools, such as Talend and Informatica. This helps customers set up a high-powered marketing data with fewer steps.
+
+In today’s world, there is more and more data being created and stored. Companies must be able to interpret and analyze this information so that they can make precise bu

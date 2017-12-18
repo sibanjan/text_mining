@@ -1,0 +1,40 @@
+These days, it seems like every city is trying to implement "smart city" initiatives. Take Singapore, for example, now known for the most extensive effort to collect data on citizens' daily living habits/routines ever attempted by a municipality. Even Bill Gates has pumped millions of dollars into helping Phoenix in their smart city efforts.
+
+But what do we mean when we talk about a "smart city"? Is it the better use of resources within the city center or the fact that all resources being wasted would eventually be overcome? Eventually, we can all agree to disagree, as there is a perception most people have in their mind with regard to the functionality and the phenomenon we know as the smart city.
+
+Since development has been rapid, it is difficult to keep an eye on all that is happening. Industries have started adapting the Internet of Things (IoT) and wish to implement it in a broader level to increase efficiency. But regardless of what's transpired to-date in all industries, one thing that does not escape the eye is M2ocity's rollout in France.
+
+To talk over this matter, I got in touch with the man behind these technicalities: Xavier Diab, IT director at M2ocity. Readers who are not yet familiar with M2ocity should know that the company is France's biggest telecom operator for the Internet of Things (IoT). A result of a merger between water supplier Veolia and operator Orange, M2ocity has emerged as a leading protagonist in the market for IoT in France.
+
+Drivers for Merger
+Veolia Water and Orange gave birth to M2ocity in 2011, bringing both companies' services together in the form of a smart metering entity. M2ocity has expanded its range from France to other areas of the world. Veolia Water, which had a strong presence across France, initiated the union with Orange, fostering hopes that both the companies could improve their quality of customer service by safeguarding resources and optimizing performance at scale
+
+The merger between Veolia Water and Orange has come a long way from where it started, as M2ocity now stands at a crucial position in the drive towards a smart city.
+
+One of my first questions to M2ocity's Xavier Diab was about the drivers behind the merger into M2ocity, France's biggest telecom operator for IoT and applications. Xavier responded that water was and is a vital resource for inhabitants living in all major cities and metropolitan centers around the world. Since water resources are very important, it is imperative that all stakeholders involved take steps to preserve and manage it in a "smart" way.
+
+Although we know about the importance of water as a commodity, we haven't taken concrete steps to address its preservation. In France alone, around 343 billion gallons (1,300 billion liters) of all portable water goes to waste due to leaks in hydraulic systems across French cities. The extent of the waste can be equated to 25% of the country's total water being lost due to minor leaks across the region. These leaks come at a cost to both consumers and operators.
+
+M2ocity, being the biggest player in the French telecom market, hopes to implement a three-point initiative for better waste management. The initiative includes smart city networks, smart objects, and energy efficiency, which end up forming the smart city itself.
+
+Challenges
+
+M2ocity's aim to create a smart city was met by numerous challenges. Some of the challenges they faced can be listed in the following ways:
+
+Water leakages: As mentioned above, water leakage was a big hindrance to the fulfillment of the smart city project. Water leakages are usually comprised of endpoint leakages, underground leakages (the most complicated ones), and above-ground leakages.
+Data collection: Along their way, M2ocity realized that data collection for IoT is not as easy as it sounds. Since there is are standards available in the market, it is difficult to collect data in a seamless way. The availability of different formats means that collectors often face a conundrum of what to collect, how to monitor, and what to use.
+Too much data: While the implications of collecting data also proved to be problematic, the high scale of data present offers another challenge. As I have highlighted in previous articles, AI or IoT can only be successful if the data is cleansed. The challenges in delivering data with the added responsibility to rationalize and cleanse data make for an interesting challenge that can only be addressed through the use of seamless methods that make the process flawless. While the size of the data brings challenges to the collection and setting a metric for the compilation of data, there are also numerous implications when it comes to visualizing/displaying the data. The visualization of such high quantities of data requires both performance and architectural capabilities. For M2ocity to display these proficiencies, it was imperative that it got in touch with a data integration firm that had both better-standardized devices and formats.
+The Solution
+When asked about the solution to the problem, Xavier responded:
+
+
+For M2ocity, that data integration entity was Talend, which offered the flexibility and reliability they were looking for. M2ocity's data needs were diverse and required the best of Talend to process the information in a way that would be suitable for both M2ocity and its customers. Talend's format, collection intervals, and scalability fit perfectly with what M2ocity required.
+
+Results
+It has been over seven years both firms went into an agreement, and the ride has been nothing short of incredibly successful. Some of the results Xavier pointed to as metrics of the project's success include:
+
+More than 2.3 million smart sensors have been installed across 3,000 cities.
+The system manages around 20 million messages of data from clients per day.
+There are around 140 million messages collected and displayed every week.
+ "We collect all types of data-water, temperature, electricity, pollution, noise data, etc. — and analyze them to develop innovative public services in smart cities." — Xavier Diab
+The future for the IoT and better data integration is indeed bright, and M2ocity wants to expand its services into lighting, safety, security, and temperature.

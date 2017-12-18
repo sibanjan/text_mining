@@ -1,0 +1,43 @@
+A graph database is a data management system software. The building blocks are vertices and edges. To put it in a more familiar context, a relational database is also a data management software in which the building blocks are tables. Both require loading data into the software and using a query language or APIs to access the data.
+
+Relational databases boomed in the 1980s. Many commercial companies (i.e. Oracle, Ingres, IBM) backed the relational model (tabular organization) of data management. In that era, the main data management need was to generate reports.
+
+Graph databases didn't see a greater advantage over relational databases until recent years, when frequent schema changes, managing explosives volume of data, real-time query response time, and more intelligent data activation requirements make people realize the advantages of the graph model.
+
+There are commercial software companies backing this model for many years, including TigerGraph (formerly named GraphSQL), Neo4j, and DataStax. The technology is disrupting many areas, such as supply chain management, e-commerce recommendations, security, fraud detection, and many other areas in advanced data analytics. 
+
+Here, we discuss the major advantages of using graph databases from a data management point of view.
+
+Object-Oriented Thinking
+This means very clear, explicit semantics for each query you write. There are no hidden assumptions, such as relational SQL where you have to know how the tables in the FROM clause will implicitly form cartesian products.
+
+Performance
+They have superior performance for querying related data, big or small. A graph is essentially an index data structure. It never needs to load or touch unrelated data for a given query. They're an excellent solution for real-time big data analytical queries.
+
+Better Problem-Solving
+Graph databases solve problems that are both impractical and practical for relational queries. Examples include iterative algorithms such as PageRank, gradient descent, and other data mining and machine learning algorithms. Research has proved that some graph query languages are Turing complete, meaning that you can write any algorithm on them. There are many query languages in the market that have limited expressive power, though. Make sure you ask many hypothetical questions to see if it can answer them before you lock in.
+
+Update Data in Real-Time and Support Queries Simultaneously
+Graph databases can perform real-time updates on big data while supporting queries at the same time. This is a major drawback of existing big data management systems such as Hadoop HDFS since it was designed for data lakes, where sequential scans and appending new data (no random seek) are the characteristics of the intended workload, and it is an architecture design choice to ensure fast scan I/O of an entire file. The assumption there was that any query will touch the majority of a file, while graph databases only touch relevant data, so a sequential scan is not an optimization assumption.
+
+Flexible Online Schema Environment
+Graph databases offer a flexible online schema evolvement while serving your query. You can constantly add and drop new vertex or edge types or their attributes to extend or shrink your data model. It's so convenient to manage explosive and constantly changing object types. The relational database just cannot easily adapt to this requirement, which is commonplace in the modern data management era.
+
+Group by Aggregate Queries
+Graph databases, in addition to traditional group-by queries, can do certain classes of group by aggregate queries that are unimaginable or impractical in relational databases. Due to the tabular model restriction, aggregate queries on a relational database are greatly constrained by how data is grouped together. In contrast, graph models are more flexible for grouping and aggregating relevant data. See this article on the latest expressive power of aggregation for graph traversal. I don’t think relational databases can do this kind of flexible aggregation on selective data points. (Disclaimer: I have worked on commercial relational database kernels for a decade; Oracle, MS SQL Server, Apache popular open-source platforms, etc.) 
+
+Combine and Hierarchize Multiple Dimensions
+Graph databases can combine multiple dimensions to manage big data, including time series, demographic, geo-dimensions, etc. with a hierarchy of granularity on different dimensions. Think about an application in which we want to segment a group of a population based on both time and geo dimensions. With a carefully designed graph schema, data scientists and business analysts can conduct virtually any analytical query on a graph database. This capability traditionally is only accessible to low-level programming languages such as C++ and Java.
+
+AI Infrastructure
+Graph databases serve as great AI infrastructure due to well-structured relational information between entities, which allows one to further infer indirect facts and knowledge. Machine learning experts love them. They provide rich information and convenient data accessibility that other data models can hardly satisfy. For example, the Google Expander team has used it for smart messaging technology. The knowledge graph was created by Google to understand humans better, and many more advances are being made on knowledge inference. The keys of a successful graph database to serve as a real-time AI data infrastructure are:
+
+Support for real-time updates as fresh data streams in
+
+A highly expressive and user-friendly declarative query language to give full control to data scientists
+
+Support for deep-link traversal (>3 hops) in real-time (sub-second), just like human neurons sending information over a neural network; deep and efficient
+
+Scale out and scale up to manage big graphs
+
+In conclusion, we see many advantages of native graph databases managing big data that cannot be worked around by traditional relational databases. However, as any new technology replacing old technology, there are still obstacles in adopting graph databases. One is that there are fewer qualified developers in the job market than the SQL developers. Another is the non-standardization of the graph database query language. There's been a lot of marketing hype and incomplete offerings that have led to subpar performance and subpar usability, which slows down graph model adoption in the needed enterprises.

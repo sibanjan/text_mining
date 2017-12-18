@@ -1,0 +1,405 @@
+The Oracle Database supports a concept of a null value, which means, essentially, that it has no value. The idea of having nulls in a relational database is controversial, but Oracle Database supports them and you need to know how they can impact your work in PL/SQL.
+
+First, and most important, remember that:
+
+Null is never equal to anything else, including null. And certainly 0. And null is never not equal to anything else, including null.
+
+DECLARE
+   var INTEGER;
+BEGIN
+   IF var = NULL THEN ...
+   IF NULL = NULL THEN ...
+   IF var <> NULL THEN ...
+   IF NULL != NULL THEN ...
+END;
+You can rest assured that the code represented by ... will never be executed.
+
+Note: NULL in the above code is a literal value with a non-value of null.
+
+The same holds true for where clause predicates in a SQL statement. The following queries will never return any rows, regardless of the contents of the employees table.
+
+SELECT *
+  FROM employees
+ WHERE employee_id = NULL
+/
+SELECT *
+  FROM employees
+ WHERE employee_id != NULL
+/
+SELECT *
+  FROM employees
+ WHERE NULL = NULL
+/
+SELECT *
+  FROM employees
+ WHERE NULL != NULL
+/
+Of course, you will rarely write code that includes explicit references to the NULL literal. You are more likely to see and write code like this:
+
+PROCEDURE my_proc (value_in IN VARCHAR2)
+IS
+BEGIN
+   IF value_in != 'abc' THEN ...
+END;
+If a NULL value could be passed to my_proc for the value_in parameter, that inequality will never evaluate to true. That might be fine, but you need to give consideration very deliberately to these questions: "Could a null value be passed in here? Should I allow a null value to be passed here?"
+
+Then take the necessary steps to bulletproof your code from nulls (see last section in this blog post for details).
+
+With that, let's dive into the details.
+
+NULLs in Oracle Database
+Nulls work the same in SQL and PL/SQL and, as is the case with so much else in PL/SQL, you should apply the documented descriptions from SQL to PL/SQL unless otherwise noted, so here's the doc on Nulls in SQL.
+
+A column's value can be null unless you defined that column with a NOT NULL constraint, as in:
+
+CREATE TABLE my_users
+(
+   id                 NUMBER GENERATED ALWAYS AS IDENTITY,
+   user_id            INTEGER NOT NULL,
+   user_name          VARCHAR2(100) NOT NULL,
+   twitter_account    VARCHAR2(100)
+)
+/
+When a row is inserted into and updated in this table, the following columns cannot be set to NULL:
+
+ID 
+USER_ID
+USER_NAME
+I don't have to provide a Twitter account name.
+
+Wait, you might be saying: Why do you have to provide a value for ID? You didn't specify NOT NULL.
+
+That's because identity columns can never be set to NULL. Identity columns are new to 12.1 and replace the use of sequences to generate unique values for primary keys.
+
+Moving on to PL/SQL, a variable's value can be null unless you declared that variable with a NOT NULL constraint or use the CONSTANT keyword to define your variable as a constant. That behavior is shown in the code below.
+
+DECLARE
+   my_name   VARCHAR2 (100);
+BEGIN
+   IF my_name IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Name not set');
+   END IF;
+END;
+/
+Name not set
+DECLARE
+   my_name   VARCHAR2 (100) NOT NULL;
+BEGIN
+   IF my_name IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Name not set');
+   END IF;
+END;
+/
+PLS-00218: a variable declared NOT NULL must have an initialization assignment
+DECLARE
+   my_name   VARCHAR2 (100) NOT NULL := 'Grandpa';
+BEGIN
+   IF my_name IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Name not set');
+   ELSE
+      DBMS_OUTPUT.put_line (my_name);
+   END IF;
+END;
+/
+Grandpa
+DECLARE
+   my_name   CONSTANT VARCHAR2 (100);
+BEGIN
+   IF my_name IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Name not set');
+   END IF;
+END;
+/
+PLS-00322: declaration of a constant 'MY_NAME' must contain an initialization assignment
+DECLARE
+   my_name   CONSTANT VARCHAR2 (100) := 'Grandpa';
+BEGIN
+   IF my_name IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Name not set');
+   ELSE
+      DBMS_OUTPUT.put_line (my_name);
+   END IF;
+END;
+/
+Grandpa
+Note that you cannot specify that a parameter in a procedure or function must be NOT NULL. Instead, you must use a datatype that cannot be null or add code to your subprogram to "protect" it from null values. See the section Bulletproofing for Nulls below.
+
+NULLs and Empty Strings
+Here's something to keep in mind:
+
+Oracle Database currently treats a character value with a length of zero as null. However, this may not continue to be true in future releases, and Oracle recommends that you do not treat empty strings the same as nulls.
+
+In other words, the following block displays 'Null' twice:
+
+BEGIN
+   IF '' IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Null');
+   END IF;
+   IF '' IS NOT NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Not');
+   END IF;
+   IF NULL IS NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Null');
+   END IF;
+   IF NULL IS NOT NULL
+   THEN
+      DBMS_OUTPUT.put_line ('Not');
+   END IF;
+END;
+But we encourage you to not write code that assumes that this will always be the case.
+
+Hey, having said that, the Oracle Database team has a very strong history of not changing behavior in new releases that causes problems in the 1,000,000s of lines of existing SQL and PL/SQL code out there "in the wild."
+
+Declarations: NULL's the Default!
+Whenever you declare a variable, it's value is set to NULL — unless you assign a different value to it. So, yes, you could do the following:
+
+DECLARE
+   var2 INTEGER := NULL;
+BEGIN
+   ...
+END;
+But I suggest that you do not. You take the risk of other people reading your code and thinking "Gee, I guess Steven doesn't understand PL/SQL too well."
+
+Instead, simply declare the variable and let the PL/SQL engine take care of the default initialization to NULL, as in:
+
+DECLARE
+   var2 INTEGER;
+BEGIN
+   ...
+END;
+Don't worry; Oracle is never going to change this behavior, so you don't have to "take out insurance."
+
+Boolean Expressions With NULL
+Study this Truth Table and make sure you are comfortable with everything you see in it. You can even verify it to yourself with this LiveSQL script.
+
+Notice that if x is null or y is null, then x AND y is always null. But x OR y evaluates to TRUE if either x or y is TRUE, even if the other value is NULL.
+
+
+
+The most important thing to remember is that in almost every case if any part of your expression evaluates to NULL, the entire expression will evaluate toNULL.
+
+In addition, pay close attention to how you construct conditional statements and expressions, when an expression might evaluate to NULL.
+
+Compare the following two blocks.
+
+Block 1:
+
+BEGIN
+   IF expr
+   THEN
+      do_this;
+   ELSE
+      do_that;
+   END IF;
+END;
+/
+Block 2:
+
+BEGIN
+   IF expr
+   THEN
+      do_this;
+   ELSIF NOT expr
+   THEN
+      do_that;
+   END IF;
+END;
+/
+In Block 1, if  expr evaluates to NULL, then do_that will be executed.
+
+In Block 2, if expr evaluates to NULL, then neither do_this nor do_that will be executed.
+
+But what if you want to treat two NULLs as being equal when you compare two values? Marcus in the comments below suggests creating an isEqual function that handles this for you. He was inspired by an AskTOM thread from years past (2012), in which Tom suggested using DECODE (available in SQL only), since it treats two NULLs as equal:
+
+where decode( col1, col2, 1, 0 ) = 0  -- finds differences
+where decode( col1, col2, 1, 0 ) = 1  -- finds sameness - even if both NULL
+Here's the implementation of Marcus's isequal function for dates:
+
+PACKAGE BODY helper
+IS
+   /**
+   * @desc Check whether both values are equal or NULL
+   * @param p_value1 date 1
+   * @param p_value2 date 2
+   * @return TRUE, if both values are equal or both values are NULL, else FALSE
+   */
+   FUNCTION isequal (p_value1 IN DATE, p_value2 IN DATE)
+      RETURN BOOLEAN
+   IS
+   BEGIN
+      -- Check NULL, otherwise NULL is returned!
+      RETURN    (p_value1 IS NOT NULL AND p_value2 IS NOT NULL AND p_value1 = p_value2)
+             OR (p_value1 IS NULL AND p_value2 IS NULL);
+   END isequal;
+END;
+NULL is not just a (not) value in PL/SQL. It is also a statement, albeit a ''no-op" (no operation)-it only passes control to the next statement. Here are two examples.
+
+I use the NULL statement inside an ELSE clause. I don't need to do this, but sometimes it's worth being explicit and letting future programmers know that you thought about the ELSE part of this IF statement and you really really don't want to do anything if expr is not TRUE (FALSE or NULL0).
+
+BEGIN
+   IF expr
+   THEN
+      do_this;
+   ELSE
+      /* Critical to not do anything if expr is false */
+      NULL;
+   END IF;
+END;
+/
+In this next block, I use NULL; as the "target" for a GOTO statement. Yes, that's right, PL/SQL has a GOTO statement — and you should rarely if ever need to use it. If/when you do, however, you need at least one executable statement after your label. If the point of the GOTO is simply to go to the end of the subprogram, then NULL; is the perfect statement with which to finish up.
+
+BEGIN
+   IF expr
+   THEN
+      GOTO do_nothing;
+   END IF;
+   more_stuff;
+   <<do_nothing>>
+   NULL;
+END;
+/
+Bulletproofing for Nulls
+Null values can be a real pain. They can cause unexpected failures and exceptions in your algorithms. They can mess up queries, either returning rows you didn't want or excluding rows when you want them.
+
+So, the first thing to do is to decide very carefully where and when you want to allow nulls. If a column's value should never be null, then define it that way. If a variable should never be set to NULL, then add the NOT NULL constraint or define it as a constant (as appropriate).
+
+If you are writing a subprogram (procedure or function) and a parameter's value should never be null, you cannot add NOT NULL to the parameter definition. Instead, you will need to do one of the following:
+
+Use a datatype for the parameter that cannot be null. These can be base datatypes, such as NATURALN, or subtypes. See the examples below.
+
+Add code to your subprogram to check or assert that the actual argument value is not null.
+
+So yes there are some base datatypes that are inherently NOT NULL-able, such as NATURALN.
+
+DECLARE
+   n   NATURALN;
+BEGIN
+   NULL;
+END;
+/
+PLS-00218: a variable declared NOT NULL must have an initialization assignment
+And when I use that datatype for my parameter, it stops NULLs cold in their tracks.
+
+CREATE OR REPLACE PACKAGE pkg AUTHID DEFINER
+AS
+   PROCEDURE no_nulls (n_in IN NATURALN);
+END;
+/
+CREATE OR REPLACE PACKAGE BODY pkg
+AS
+   PROCEDURE no_nulls (n_in IN NATURALN)
+   IS
+   BEGIN
+      DBMS_OUTPUT.put_line (n_in);
+   END;
+END;
+/
+BEGIN
+   pkg.no_nulls (NULL);
+END;
+/
+PLS-00567: cannot pass NULL to a NOT NULL constrained formal parameter
+What if you are passing a string to your procedure and there is no base VARCHAR2 datatype that excludes NULLs? Then, you declare your own subtype and make that new datatype not-nullable. Let's take a look:
+
+CREATE OR REPLACE PACKAGE pkg AUTHID DEFINER
+AS
+   SUBTYPE nn_varchar2 IS VARCHAR2(100) NOT NULL;
+   PROCEDURE no_nulls (n_in IN nn_varchar2);
+END;
+/
+CREATE OR REPLACE PACKAGE BODY pkg
+AS
+   PROCEDURE no_nulls (n_in IN nn_varchar2)
+   IS
+   BEGIN
+      DBMS_OUTPUT.put_line (n_in);
+   EXCEPTION
+      WHEN OTHERS
+      THEN
+         DBMS_OUTPUT.put_line ('Error!');
+         RAISE;
+   END;
+END;
+/
+BEGIN
+   pkg.no_nulls (NULL);
+END;
+/
+PLS-00567: cannot pass NULL to a NOT NULL constrained formal parameter
+Note that the exceptions raised above occur before the procedure is even executed, so the exception handler of the procedure cannot trap the exception (you do not see "Error!" after trying to run pkg.no_nulls). That may be just what you want.
+
+But if you cannot use a NOT NULL  datatype for your parameter or you want to be able to trap the exception inside the subprogram, then you should write your own assertion code that runs right at the top of the subprogram. Here's an example:
+
+CREATE OR REPLACE PACKAGE pkg AUTHID DEFINER
+AS
+   PROCEDURE no_nulls (n_in IN VARCHAR2);
+END;
+/
+CREATE OR REPLACE PACKAGE BODY pkg
+AS
+   PROCEDURE no_nulls (n_in IN VARCHAR2)
+   IS
+   BEGIN
+      IF n_in IS NULL
+      THEN
+         RAISE_APPLICATION_ERROR (-20000,
+           'NULLs not allowed in pkg.no_nulls');
+      END IF;
+      DBMS_OUTPUT.put_line (n_in);
+   EXCEPTION
+      WHEN OTHERS
+      THEN
+         DBMS_OUTPUT.put_line ('Error! ' || SQLERRM);
+         RAISE;
+   END;
+END;
+/
+BEGIN
+   pkg.no_nulls (NULL);
+END;
+/
+Error! ORA-20000: NULLs not allowed in pkg.no_nulls
+Better yet is to use a predefined and application-standard assertion package. That way, your code could look more like this:
+
+CREATE OR REPLACE PACKAGE pkg AUTHID DEFINER
+AS
+   PROCEDURE no_nulls (n_in IN VARCHAR2);
+END;
+/
+CREATE OR REPLACE PACKAGE BODY pkg
+AS
+   PROCEDURE no_nulls (n_in IN VARCHAR2)
+   IS
+   BEGIN
+      assert.is_not_null (n_in, 'NULLs not allowed in pkg.no_nulls');
+      DBMS_OUTPUT.put_line (n_in);
+   EXCEPTION
+      WHEN OTHERS
+      THEN
+         DBMS_OUTPUT.put_line ('Error! ' || SQLERRM);
+         RAISE;
+   END;
+END;
+/
+Don't have an assertion package? No problem! Grab mine from LiveSQL.
+
+Avoid NULL Headaches
+It really doesn't matter if you believe ever-so-strongly that Oracle (and other RDBMS vendors) should not have allowed NULLs in its relational database. If you'd like to go down that rabbit hole, start here.
+
+NULLs are in Oracle Database and they are here to stay.
+
+So, you should understand nulls, the NULL value, the NULL statement, and how nulls can cause confusion and errors.
+
+Then take steps in your code to avoid that confusion and those errors.
+
+Do everything that you can declaratively (such as defining a column as NOT NULL).
+
+Bullet-proof your subprograms with assertion logic to ensure that your program is free of nulls (when that is how it should be).

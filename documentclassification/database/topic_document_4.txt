@@ -1,0 +1,108 @@
+You’re in your new job as a database administrator or data engineer and you just got lost trying to figure out what these insane looking queries are supposed to mean and do. Why are there five joins and why is there an ORDER BY used within a subquery before one of the joins even happens? Remember, you were hired for a reason — most likely, that reason also has to do with many convoluted queries that were created and edited over the last decade.
+
+Explain
+The EXPLAIN keyword is used throughout various SQL databases and provides information about how your SQL database executes a query. In MySQL, EXPLAIN can be used in front of a query beginning with SELECT, INSERT, DELETE, REPLACE, and UPDATE. For a simple query, it would look like the following:
+
+EXPLAIN SELECT * FROM foo WHERE foo.bar = 'infrastructure as a service' OR foo.bar = 'iaas';
+Instead of the usual result output, MySQL would then show its statement execution plan by explaining which processes take place in which order when executing the statement.
+
+Note: If EXPLAIN does not work for you, your database user might not have the SELECT privilege for the tables or views you are using in your statement.
+
+EXPLAIN is a great tool to quickly remedy slow queries. While it can certainly help you, it will not take away the need for structural thinking and a good overview of the data models in place. Often, the simplest fix and quickest advice is to add an index to a specific table’s columns in question if they are used in many queries with performance issues. Beware, though; do not use too many indices as that might be counter-productive. Reading the index and the table only makes sense if the table has a significant amount of rows and you need only a few data points. If you are retrieving a huge result set from a table and querying different columns often, an index on every column does not make sense and hinders performance more than it helps. For more on the actual calculations of index vs. no index, read Estimating Performance in the official MySQL documentation.
+
+The things you want to avoid wherever possible and applicable are sorting and calculations within queries. If you think you cannot avoid calculations within your queries: yes, you can. Write the result set somewhere else and calculate your data point outside of the query; it will put less strain on the database and therefore be overall better for your application. Just make sure you document why you’re calculating within your application rather than having a result produced in SQL right away. Otherwise, the next database administrator or developer will come along and have the glorious idea of using a calculation within the query along the lines of, “oh look, my predecessor didn’t even know you can do that in SQL!” Some developer teams who have not yet had the inevitable trouble of dying databases might use in-query calculations for number differences between dates or similar data points.
+
+The general rule of thumb for SQL queries is as follows:
+
+ Be precise and generate only the results that you need.
+Let’s check out a slightly more complicated query…
+
+SELECT site_options.domain, sites_users.user, site_taxes.monthly_statement_fee, site.name, AVG(price) AS average_product_price FROM sites_orders_products, site_taxes, site, sites_users, site_options WHERE site_options.site_id = site.id AND sites_users.id = site.user_id AND site_taxes.site_id = site.id AND sites_orders_products.site_id = site.id GROUP BY site.id ORDER BY site.date_modified desc LIMIT 5;
++-----------------------------+-----------------------------+-----------------------+------------------------------------------+-----------------------+
+| domain                      | user                        | monthly_statement_fee | name                                     | average_product_price |
++-----------------------------+-----------------------------+-----------------------+------------------------------------------+-----------------------+
+| www.xxxxxxxxxxxxxxxxxxx.com | xxxxxxxxxxxxxxxxx@yahoo.com |                  0.50 | xxxxxxxxxxxxxxxxxxxxx                    |              3.254781 |
+| www.xxxxxxxxxxx.com         | xxxxxxxxxxxxxxx@gmail.com   |                  0.50 | xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx |              9.471022 |
+|                             | xxxxx@gmail.com.com         |                  0.00 | xxxxxxxxxxxxxxxxx                        |              8.646297 |
+|                             | xxxxx@yahoo.com             |                  0.00 | xxxxxxxxxxxxxxx                          |              9.042460 |
+|                             | xxxxx@hotmail.com           |                  0.00 | xxxxxxxxxxxxxxxxxx                       |              6.679182 |
++-----------------------------+-----------------------------+-----------------------+------------------------------------------+-----------------------+
+5 rows in set (0.00 sec)
+…and its EXPLAIN output.
+
++------+-------------+---------------------------------+--------+-----------------+---------------+---------+---------------------------------+------+-----------+
+| id   | select_type | table                           | type   | possible_keys   | key           | key_len | ref                             | rows | Extra     |
++------+-------------+---------------------------------+--------+-----------------+---------------+---------+---------------------------------+------+-----------+
+|    1 | SIMPLE      | sites                           | index  | PRIMARY,user_id | PRIMARY       | 4       | NULL                            |  858 | Using temporary; Using filesort |
+|    1 | SIMPLE      | sites_options                   | ref    | site_id         | site_id       | 4       | service.sites.id                |    1 |           |
+|    1 | SIMPLE      | sites_taxes                     | ref    | site_id         | site_id       | 4       | service.sites.id                |    1 |           |
+|    1 | SIMPLE      | sites_users                     | eq_ref | PRIMARY         | PRIMARY       | 4       | service.sites.user_id           |    1 |           |
+|    1 | SIMPLE      | sites_orders_products           | ref    | site_id         | site_id       | 4       | service.sites.id                | 4153 |           |//
++------+-------------+---------------------------------+--------+-----------------+---------------+---------+---------------------------------+------+-----------+
+5 rows in set (0.00 sec)
+The columns in the EXPLAIN output with the ones that need special attention for identifying problems in bold are:
+
+id (query ID)
+select_type (type of statement)
+table (table referenced)
+type (join type)
+possible_keys (which keys could have been used)
+key (the key that was used)
+key_len (length of the used key)
+ref (columns compared to index)
+rows (amount of rows searched)
+Extra (additional information)
+The higher the number of rows searched, the better the optimization level regarding indices and query precision need to be in order to maximize performance. The Extra column shows possible actions that you could focus on to improve your query if applicable.
+
+SHOW WARNINGS;
+If the query which you used with EXPLAIN doesn't parse correctly, you can type SHOW WARNINGS; into your MySQL query editor to show information about the last statement that was run and was not diagnostic, i.e. it will not show information for statements like SHOW FULL PROCESSLIST;. While it cannot give a proper query execution plan like EXPLAIN does, it might give you hints about those query fragments it could process. Let’s say we use the query EXPLAIN SELECT * FROM foo WHERE foo.bar = 'infrastructure as a service' OR foo.bar = 'iaas';on any given database that does not actually have a table foo. The MySQL output would be:
+
+ERROR 1146 (42S02): Table 'db.foo' doesn't exist
+If we type SHOW WARNINGS; the output is as follows:
+
++-------+------+-------------------------------------+
+| Level | Code | Message                             |
++-------+------+-------------------------------------+
+| Error | 1146 | Table 'db.foo' doesn't exist        |
++-------+------+-------------------------------------+
+1 row in set (0.00 sec)
+Let’s try this with a deliberate syntax error.
+
+EXPLAIN SELECT * FROM foo WHERE name = ///;
+This generates the following warnings:
+
+> SHOW WARNINGS;
++-------+------+---------------------------------------------------------------------+
+| Level | Code | Message                                                             |
++-------+------+---------------------------------------------------------------------+
+| Error | 1064 | You have an error in your SQL syntax; (...) near '///' at line 1    |
++-------+------+---------------------------------------------------------------------+
+This warnings output is fairly straightforward and shown by MySQL as result output right away, but for more complicated queries that do not parse, it is still possible to take a look at what happens in those query fragments that can be parsed. SHOW WARNINGS; includes special markers which can deliver useful information, such as:
+
+<index_lookup>(query fragment): An index lookup would happen if the query had been properly parsed.
+<if>(condition, expr1, expr2): An if condition is occurring in this specific part of the query.
+<primary_index_lookup>(query fragment): An index lookup would be happening via primary key.
+<temporary table>: An internal table would be created here for saving temporary results, for example in subqueries prior to joins.
+To find out more about these special markers, read Extended Explain Output Format in the official MySQL documentation.
+
+The Long-Term Fix
+There are several ways to fix the root cause of bad database performance. The first point to look at is the data model, i.e. how is the data structured and are you using the right database? For many products, a SQL database is just fine. One important thing to remember is to always separate the access logs from the regular production database, which unfortunately does not happen in many companies. Mostly, in these cases, a company started small, grew bigger, and essentially still uses the same database, which means they access the same database for both logging functionality as well as other transactions. This significantly reduces overall performance, especially as the company grows bigger. Hence, it is very important to create a data model that fits and is sustainable.
+
+Data Model
+Choosing a data model will most likely reveal the right form of database(s) as well. Unless your product is very basic, you will probably have several databases for several use cases — if you need to show near real-time numbers for access logs, you will most likely want a highly performant data warehouse whereas regular transactions might happen via a SQL database, and you might have a graph database that accumulates the relevant data points of both databases into a recommender engine as well.
+
+The software architecture of the overall product is just as important as the database itself since bad design here will result in bottlenecks that go towards the database and slow everything down both from the software side as well as what the database can output. You will need to choose whether containers are right for your product, whether a monolith is the better way to handle things, whether you may want to have a core monolith with several microservices targeting other functionality spread out elsewhere and how you access, gather, process, and store data.
+
+Hardware
+Just as important as your general structure, your hardware is a key component in your database performance. Exoscale offers you various instance options which you can use depending on your transaction and storage volume as well as your desired response time.
+
+It is crucial to determine the peak periods of your application and hence know when to omit the slower administrative queries if possible. Disk I/O and network statistics need to be considered as well when you design the timing of your database transactions and analytics.
+
+Summary
+In conclusion, here are the main points for long-term performance summarized:
+
+Create a sustainable data model that suits your company’s needs.
+Choose the right form of database.
+Use a software architecture that matches your product.
+Go through regular iterations of looking at the structure of your queries and use EXPLAIN on the more convoluted ones, optimize usage for your chosen database(s), also with regard to database updates and how they could affect you.
+Choose the instances that best suit your application and database needs in accordance with performance and bandwidth.
